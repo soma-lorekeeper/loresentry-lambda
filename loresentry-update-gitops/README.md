@@ -41,10 +41,16 @@ images:
 The edit is a targeted line replacement, not a YAML re-serialisation, so comments,
 key order and quoting style survive.
 
-`GITOPS_ROOT` is what scopes the function to one environment. Pointing it at
-`workload/overlays/dev` would make the same code deploy to dev, so adding a dev
-pipeline means a second function (or a new field in the payload), not a code
-change here.
+`GITOPS_ROOT` is what scopes the function to one environment, so the same code
+runs as two functions:
+
+| Function | `GITOPS_ROOT` | Invoked by |
+| --- | --- | --- |
+| `loresentry-update-gitops` | `workload/overlays/prod` | CI on `main` |
+| `loresentry-update-gitops-dev` | `workload/overlays/dev` | CI on `dev` |
+
+The application workflows pick the function from the branch, so a push to `dev`
+can never edit the prod overlay.
 
 ## Failure behaviour
 
@@ -83,7 +89,7 @@ failure.
 | `GITHUB_OWNER` | `soma-lorekeeper` |
 | `GITOPS_REPO` | `loresentry-gitops` |
 | `GITOPS_BRANCH` | `main` |
-| `GITOPS_ROOT` | `workload/overlays/prod` |
+| `GITOPS_ROOT` | `workload/overlays/prod`, or `workload/overlays/dev` for the dev function |
 | `ECR_REGISTRY` | `197179613039.dkr.ecr.ap-northeast-2.amazonaws.com` |
 | `GITHUB_TOKEN_SECRET` | `loresentry/github/gitops-token` |
 
@@ -111,9 +117,11 @@ The suite covers the tag replacement logic against a fixture copy of the real
 ## Deploy
 
 ```bash
-./configure.sh   # role, timeout, memory, environment variables
-./deploy.sh      # handler code
+./configure.sh prod   # role, timeout, memory, environment variables
+./configure.sh dev    # the same for the dev function; creates it if it does not exist
+./deploy.sh           # handler code, to both functions
 ```
 
 `configure.sh` replaces the entire environment variable map, so it always sends
-every variable. Run it after changing any of them.
+every variable. Run it after changing any of them. `deploy.sh` updates both
+functions together so that prod and dev never run different code.

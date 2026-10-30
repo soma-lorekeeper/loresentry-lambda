@@ -6,7 +6,7 @@ be considered a deployment target of, not the source of truth.
 
 | Function | Directory |
 | --- | --- |
-| `loresentry-update-gitops` | [`loresentry-update-gitops/`](loresentry-update-gitops/) |
+| `loresentry-update-gitops`, `loresentry-update-gitops-dev` | [`loresentry-update-gitops/`](loresentry-update-gitops/) |
 
 Each directory holds the handler, its tests, and the two scripts that push it to
 AWS. No packaging step or dependencies beyond the runtime's built-in `boto3`.
